@@ -17,8 +17,12 @@ our @EXPORT = qw(
 
 sub carton_install ($) {
     my $carton_cwd = shell_quote shift;
+
     no strict 'refs';
-    my $run = *{caller . '::run'}{CODE};
+    my $caller = caller;
+    my $run    = *{"$caller\::run"}{CODE}
+        or Carp::croak "$caller\::run is not implemented";
+
     $run->("cd $carton_cwd && carton install");
 }
 
@@ -31,20 +35,26 @@ sub carton_exec (&$@) {
     no warnings 'redefine';
 
     my $caller   = caller;
-    my $dsl      = "${caller}::run";
-    my $orig_dsl = *{$dsl}{CODE};
+    my $run      = "$caller\::run";
+    my $orig_run = *{$dsl}{CODE} or Carp::croak "$run is not implemented";
 
-    my $lib = '';
-    $lib = join( ' ', map { '-I' . $_ } @carton_lib ) if (@carton_lib);
+    my $lib
+        = (@carton_lib)
+        ? join( ' ', map { '-I' . shell_quote $_ } @carton_lib )
+        : undef;
 
-    local *{$dsl} = sub (@) {
+    local *{$run} = sub (@) {
         my @cmd = @_;
-        my $carton_exec = ";cd $carton_cwd && carton exec $lib --";
+        my $carton_exec = "cd $carton_cwd && carton exec";
+        $carton_exec .= " $lib" if ($lib);
+        $carton_exec .= " --";
 
-        my $opts = undef;
-        $opts = shift @cmd if ref $cmd[0] eq 'HASH';
+        my $opt = ( ref $cmd[0] eq 'HASH' ) ? shift @cmd : undef;
 
-        $orig_dsl->( ($opts) ? ( $opts, $carton_exec, @cmd ) : ( $carton_exec, @cmd ) );
+        my @args = ( $carton_exec, @cmd );
+        unshift @args, $opt if ($opt);
+
+        $orig_run->(@args);
     };
 
     $code->();
@@ -71,10 +81,8 @@ This document describes Cinnamon::Task::Carton version 0.01
   use Cinnamon::DSL;
   use Cinnamon::Task::Carton;
   
-  my $carton_cwd = '/tmp/cinnamon_carton';
-  
   set user       => getpwuid($>);
-  set carton_cwd => $carton_cwd;
+  set carton_cwd => '/tmp/myapp';
   
   role development => [qw/localhost/];
 
