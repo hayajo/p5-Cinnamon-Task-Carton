@@ -36,7 +36,7 @@ sub carton_exec (&$@) {
 
     my $caller   = caller;
     my $run      = "$caller\::run";
-    my $orig_run = *{$dsl}{CODE} or Carp::croak "$run is not implemented";
+    my $orig_run = *{$run}{CODE} or Carp::croak "$run is not implemented";
 
     my $lib
         = (@carton_lib)
