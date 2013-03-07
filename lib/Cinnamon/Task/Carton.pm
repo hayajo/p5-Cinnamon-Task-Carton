@@ -44,6 +44,9 @@ sub carton_exec (&$@) {
         : undef;
 
     local *{$run} = sub (@) {
+        Carp::croak "carton_exec have to use with remote"
+            unless ( ref $_ eq 'Cinnamon::Remote' );
+
         my @cmd = @_;
         my $carton_exec = "cd $carton_cwd && carton exec";
         $carton_exec .= " $lib" if ($lib);
