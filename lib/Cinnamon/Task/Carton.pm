@@ -15,21 +15,33 @@ our @EXPORT = qw(
     carton_exec
 );
 
-sub carton_install ($) {
-    my $carton_cwd = shell_quote shift;
+sub carton_install ($;$) { # no critic
+    Carp::croak "carton_exec have to use with remote"
+        unless ( ref $_ eq 'Cinnamon::Remote' );
+
+    my $carton_cwd  = shell_quote shift;
+    my $carton_opts = shift || [];
+
+    # use Data::Dumper;
+    # warn Dumper $carton_opts;
+
+    my $cmd_str = "cd $carton_cwd && carton install";
+    for (@$carton_opts) {
+        $cmd_str .= ' ' . shell_quote($_);
+    }
 
     no strict 'refs';
     my $caller = caller;
     my $run    = *{"$caller\::run"}{CODE}
         or Carp::croak "$caller\::run is not implemented";
 
-    $run->("cd $carton_cwd && carton install");
+    $run->($cmd_str);
 }
 
 sub carton_exec (&$@) {
-    my $code       = shift;
-    my $carton_cwd = shell_quote shift;
-    my @carton_lib = @_;
+    my $code        = shift;
+    my $carton_cwd  = shell_quote shift;
+    my $carton_libs = shift || [];
 
     no strict 'refs';
     no warnings 'redefine';
@@ -38,26 +50,26 @@ sub carton_exec (&$@) {
     my $run      = "$caller\::run";
     my $orig_run = *{$run}{CODE} or Carp::croak "$run is not implemented";
 
-    my $lib
-        = (@carton_lib)
-        ? join( ' ', map { '-I' . shell_quote $_ } @carton_lib )
-        : undef;
-
     local *{$run} = sub (@) {
         Carp::croak "carton_exec have to use with remote"
             unless ( ref $_ eq 'Cinnamon::Remote' );
 
         my @cmd = @_;
-        my $carton_exec = "cd $carton_cwd && carton exec";
-        $carton_exec .= " $lib" if ($lib);
-        $carton_exec .= " --";
 
-        my $opt = ( ref $cmd[0] eq 'HASH' ) ? shift @cmd : undef;
+        my $cmd_str = "cd $carton_cwd && carton exec ";
+        for (@$carton_libs) {
+            $cmd_str .= shell_quote("-I$_") . ' ';
+        }
+        $cmd_str .= "--";
 
-        my @args = ( $carton_exec, @cmd );
-        unshift @args, $opt if ($opt);
+        if ( ref $cmd[0] eq 'HASH' ) {
+            splice( @cmd, 1, 0, $cmd_str );
+        }
+        else {
+            unshift( @cmd, $cmd_str );
+        }
 
-        $orig_run->(@args);
+        $orig_run->(@cmd);
     };
 
     $code->();
