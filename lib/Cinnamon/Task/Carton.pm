@@ -22,9 +22,6 @@ sub carton_install ($;$) { # no critic
     my $carton_cwd  = shell_quote shift;
     my $carton_opts = shift || [];
 
-    # use Data::Dumper;
-    # warn Dumper $carton_opts;
-
     my $cmd_str = "cd $carton_cwd && carton install";
     for (@$carton_opts) {
         $cmd_str .= ' ' . shell_quote($_);
@@ -80,7 +77,7 @@ __END__
 
 =head1 NAME
 
-Cinnamon::Task::Carton - [One line description of module's purpose here]
+Cinnamon::Task::Carton - L<Carton> Tasks/DSL for L<Cinnamon>
 
 
 =head1 VERSION
@@ -126,7 +123,7 @@ This document describes Cinnamon::Task::Carton version 0.01
 
 =head1 DESCRIPTION
 
-Cinnamon::Task::Carton is carton dsls for L<Cinnamon>
+Cinnamon::Task::Carton is L<Carton> Tasks/DSL for L<Cinnamon>
 
 This is B<alpha> version.
 
@@ -134,11 +131,13 @@ This is B<alpha> version.
 
 =over 4
 
-=item carton_install ( I<$carton_cwd: String> ): ( I<$stdout: String>, I<$stderr: String> )
+=item carton_install ( I<$carton_cwd: String> I<$opt: ArrayRef> ): ( I<$stdout: String>, I<$stderr: String> )
 
-=item carton_exec ( I<$sub: CODE> I<$carton_cwd: String> I<@lib: Array> ): Any
+This is supported only under C<remote>.
 
-C<sudo> is not supported.
+=item carton_exec ( I<$sub: CODE> I<$carton_cwd: String> I<$lib: ArrayRef> ): Any
+
+This is supported only under C<remote>.
 
 =back
 
