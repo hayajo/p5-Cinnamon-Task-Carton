@@ -28,7 +28,7 @@ task myapp => {
         remote {
             carton_exec {
                 run "bin/myapp";
-            } $carton_cwd, qw/lib/;
+            } $carton_cwd, [qw/lib/];
         } $host;
     },
 };
