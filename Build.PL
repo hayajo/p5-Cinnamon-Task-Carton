@@ -9,17 +9,18 @@ my $builder = Module::Build->new(
     dist_version_from    => 'lib/Cinnamon/Task/Carton.pm',
     recursive_test_files => 1,
     build_requires       => {
-        'Test::More'     => '0.98',
-        'Test::Requires' => '0.06',
-        'Test::Exception::LessClever' => '0.006',
+        'Test::More'                  => '0.98',
+        'Test::Requires'              => '0.06',
+        'Test::Exception::LessClever' => '0.006';
     },
     configure_requires => { 'Module::Build' => '0.38' },
     requires           => {
         'perl'            => '5.008001',
-        # 'REQUIRED::MODULE' => '0',
+        "Cinnamon"           => '0.07',
+        "String::ShellQuote" => '1.04',
     },
     script_files   => [],
-    # create_readme  => 1,
+    create_readme  => 1,
     create_license => ( eval "require Software::License" ) ? 1 : 0,
     # test_files => ( -d '.git' || $ENV{RELEASE_TESTING} ) ? 't/ xt/' : 't/',
     test_files     => 't/',
