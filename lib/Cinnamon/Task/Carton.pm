@@ -135,9 +135,25 @@ This is B<alpha> version.
 
 This is supported only under C<remote>.
 
+  # Executed on remote host
+  ...;
+  my $carton_cwd = get('carton_cwd');
+  remote {
+      carton_install $carton_cwd;
+  } $host;
+
 =item carton_exec ( I<$sub: CODE> I<$carton_cwd: String> I<$lib: ArrayRef> ): Any
 
 This is supported only under C<remote>.
+
+  # Executed on remote host
+  ...;
+  my $carton_cwd = get('carton_cwd');
+  remote {
+      carton_exec {
+          run "bin/myapp";
+      } $carton_cwd, [qw/lib/];
+  } $host;
 
 =back
 
