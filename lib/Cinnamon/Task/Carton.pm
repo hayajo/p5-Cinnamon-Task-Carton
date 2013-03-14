@@ -69,6 +69,13 @@ sub carton_exec (&$@) {
         $orig_run->(@cmd);
     };
 
+    my $sudo     = "${caller}::sudo";
+    my $orig_sudo = *{$sudo}{CODE} or Carp::croak "$sudo is not implemented";
+    local *{$sudo} = sub (@) {
+        local *{'Cinnamon::DSL::run' } = *{$run};
+        $orig_sudo->(@_);
+    };
+
     $code->();
 }
 
